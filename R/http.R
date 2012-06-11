@@ -16,14 +16,25 @@ httpHeader <- function(...) {
 #'
 #' @param url		character
 #' @param header	see \link{httpHeader}
+#' @param curl		RCurl handle (can reuse)
+#' @param cache		whether to use the local cache
 #' @return			text from the response
 #' @export
-httpGet <- function(url, header=httpHeader(), curl=getCurlHandle(), ...) {
+httpGet <- function(url, header=httpHeader(), curl=getCurlHandle(), ..., cache=TRUE) {
 	require(RCurl)
-	if (missing(...)) {
-		getURLContent(url, httpheader=header)	
-	} else {
-		args <- list(uri=url, ..., curl=curl, .opts=list(httpheader=header, verbose=TRUE))
-		do.call('getForm', args)
+	key <- cacheKey(url)
+	response <- cacheGet(key)
+	if (is.null(response)) {
+		tryCatch({
+			if (missing(...)) {
+				response <- getURLContent(url, httpheader=header)	
+			} else {
+				args <- list(uri=url, ..., curl=curl, .opts=list(httpheader=header, verbose=TRUE))
+				response <- do.call('getForm', args)
+			}
+			cachePut(key, response)
+			attr(response, 'cacheKey') <- key
+		}, error=warning)
 	}
+	return(response)
 }

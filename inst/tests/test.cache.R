@@ -7,6 +7,7 @@ object <- list(foo=runif(10), bar=rnorm(10))
 
 test_that('cache is writable', {
 	cachePut(key, object)
+	expect_true(key %in% cacheKeys())
 })
 
 test_that('cache is readable', {
@@ -16,4 +17,5 @@ test_that('cache is readable', {
 test_that('cache is deletable', {
 	cacheDelete(key)
 	expect_true(is.null(cacheGet(key)))
+	expect_false(key %in% cacheKeys())
 })
