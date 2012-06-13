@@ -3,25 +3,25 @@ cacheKey <- function(url) {
 	digest(url, serialize=FALSE)
 }
 
-cacheKeys <- function() {
-	filenames <- list.files(cacheDir(), full.names=FALSE)
-	return(sub('\\.rds$', '', filenames))
+cacheContains <- function(key) {
+	file.exists(cacheFile(key))
 }
 
-cacheDir <- function() {
-	path <- file.path(getwd(), '.httpget')
-	if (!file.exists(path))	{
-		message("Creating cache directory: ", path)
-		dir.create(path)
-	}
-	return(path)
+cacheDir <- function(key) {
+	file.path(getwd(), '.httpget')
 }
 
 cacheFile <- function(key) {
-	file.path(cacheDir(), paste(key, '.rds', sep=''))
+	file.path(cacheDir(), substring(key, 1, 3), substring(key, 4, 6), paste(key, '.rds', sep=''))
 }
 
-cachePut <- function(key, value) {
+cachePut <- function(key, value, quiet=TRUE) {
+	file <- cacheFile(key)
+	subdir <- dirname(file) 
+	if (!file.exists(subdir))	{
+		if (!quiet) message("Creating cache directory: ", subdir)
+		dir.create(subdir, recursive=TRUE)
+	}
 	saveRDS(value, file=cacheFile(key))
 }
 
@@ -37,7 +37,7 @@ cacheDelete <- function(key) {
 }
 
 cachePurge <- function() {
-	filenames <- as.list(list.files(cacheDir(), full.names=TRUE))
+	filenames <- as.list(list.files(cacheDir(), full.names=TRUE, recursive=TRUE))
 	if (length(filenames) < 1) {
 		message("Cache is already empty.")
 	} else {

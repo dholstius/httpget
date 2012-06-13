@@ -8,8 +8,8 @@ test_that('request can be made', {
 test_that('response is cached', {
 	key <- cacheKey(url)
 	cacheDelete(key)
-	expect_false(key %in% cacheKeys())
+	expect_false(cacheContains(key))
 	response <- httpGet(url)
 	expect_equal(attr(response, 'cacheKey'), cacheKey(url))
-	expect_true(key %in% cacheKeys())
+	expect_true(cacheContains(key))
 })
